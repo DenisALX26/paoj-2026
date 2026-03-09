@@ -3,7 +3,7 @@ package com.pao.laboratory01.exercise;
 /**
  * Exercițiu — Singleton Service pentru Car
  *
- * Completează metoda marcată cu TODO.
+ * 
  *
  * Ce este un Singleton?
  * - O clasă care are O SINGURĂ instanță în toată aplicația.
@@ -62,25 +62,24 @@ public class CarService {
         System.out.println("Mașina \"" + car.getName() + "\" a fost adăugată!");
     }
 
-    /**
-     * TODO — Exercițiu bonus
-     *
-     * Adaugă un review la mașina cu numele dat.
-     *
-     * Pași:
-     * 1. Parcurge array-ul cars cu un for.
-     * 2. Compară numele fiecărei mașini cu carName folosind .equals()
-     *    (ex: cars[i].getName().equals(carName))
-     * 3. Dacă o găsești:
-     *    a. Ia array-ul curent de reviews: cars[i].getReviews()
-     *    b. Creează un array nou cu length + 1 (același pattern ca la addCar)
-     *    c. Copiază review-urile vechi + adaugă review-ul nou
-     *    d. Setează noul array: cars[i].setReviews(newReviews)
-     *    e. Afișează un mesaj de confirmare și return
-     * 4. Dacă nu o găsești (for-ul se termină), afișează "Mașina nu a fost găsită."
-     */
     public void addReview(String carName, String review) {
-        // TODO: implementează aici
+        Car car = null;
+        for (int i = 0; i < cars.length; i++) {
+            if (cars[i].getName().equals(carName)) {
+                car = cars[i];
+                break;
+            }
+        }
+
+        if (car == null) {
+            System.out.println("Mașina nu a fost găsită.");
+            return;
+        }
+        String[] reviews = car.getReviews();
+        String[] newReviews = new String[reviews.length + 1];
+        System.arraycopy(reviews, 0, newReviews, 0, reviews.length);
+        newReviews[newReviews.length - 1] = review;
+        car.setReviews(newReviews);
+        System.out.println("Review adăugat cu succes!");
     }
 }
-

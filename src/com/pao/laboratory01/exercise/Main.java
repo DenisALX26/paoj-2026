@@ -5,7 +5,7 @@ import java.util.Scanner;
 /**
  * Exercițiu — Meniu interactiv CRUD pentru Car
  *
- * Completează cazul 3 din switch marcat cu TODO.
+ * Completează cazul 3 din switch marcat cu todo.
  *
  * Programul rulează într-o buclă infinită (while true).
  * La fiecare iterație:
@@ -41,15 +41,15 @@ public class Main {
                     carService.addCar(new Car(name, color));
                     break;
                 case 3:
-                    // TODO: Implementează adăugare review
-                    // Pași:
-                    // 1. Citește numele mașinii de la tastatură (scanner.next())
-                    // 2. Citește textul review-ului (scanner.next())
-                    // 3. Apelează carService.addReview(carName, review)
-                    System.out.println("TODO — implementează adăugare review");
+                    System.out.println("Introdu numele masinii: ");
+                    String carName = scanner.next();
+                    System.out.println("Introdu textul review-ului: ");
+                    String review = scanner.next();
+                    carService.addReview(carName, review);
                     break;
                 case 0:
                     System.out.println("La revedere!");
+                    scanner.close();
                     System.exit(0);
                     break;
                 default:

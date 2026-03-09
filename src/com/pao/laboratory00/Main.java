@@ -27,6 +27,7 @@ public class Main {
         for (int i = 0; i < n; i++) {
             array[i] = scanner.nextInt();
         }
+        scanner.close();
         // afisam elementele array-ului
         for (int num : array) {
             System.out.println(num);
