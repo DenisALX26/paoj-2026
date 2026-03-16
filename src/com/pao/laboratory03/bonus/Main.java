@@ -1,5 +1,12 @@
 package com.pao.laboratory03.bonus;
 
+import java.util.Map;
+
+import com.pao.laboratory03.bonus.enums.Priority;
+import com.pao.laboratory03.bonus.enums.Status;
+import com.pao.laboratory03.bonus.model.Task;
+import com.pao.laboratory03.bonus.service.TaskService;
+
 /**
  * Exercițiul 5 (Bonus) — Sistem de gestiune task-uri cu audit log
  *
@@ -158,6 +165,48 @@ public class Main {
         // TODO: implementează toți cei 10 pași de mai sus
         // Creează TOATE clasele necesare în acest pachet (bonus/)
         // Nu ai subpachete impuse — organizează cum consideri
+        TaskService taskService = TaskService.getInstance();
+        taskService.addTask("Fix login bug", Priority.PriorityLevel.CRITICAL);
+        taskService.addTask("Add dark mode", Priority.PriorityLevel.LOW);
+        taskService.addTask("Update docs", Priority.PriorityLevel.MEDIUM);
+        taskService.addTask("Fix memory leak", Priority.PriorityLevel.HIGH);
+        taskService.addTask("Refactor DB layer", Priority.PriorityLevel.HIGH);
+        taskService.assignTask("T001", "Ana");
+        taskService.assignTask("T003", "Mihai");
+        taskService.assignTask("T004", "Elena");
+        taskService.changeStatus("T001", "IN_PROGRESS");
+        taskService.changeStatus("T001", "DONE");
+        taskService.changeStatus("T003", "IN_PROGRESS");
+        try {
+            taskService.changeStatus("T001", "TODO");
+        } catch (Exception e) {
+            System.out.println("InvalidTransitionException: " + e.getMessage());
+        }
+        System.out.println("=== Task-uri HIGH ===");
+        for (Task task : taskService.getTasksByPriority(Priority.PriorityLevel.HIGH))
+            System.out.println(task);
+        System.out.println("=== Sumar status ===");
+        for (Map.Entry<Status, Long> entry : taskService.getStatusSummary().entrySet())
+            System.out.println(entry.getKey() + ": " + entry.getValue());
+        System.out.println("=== Task-uri neasignate ===");
+        for (Task task : taskService.getUnassingnedTasks())
+            System.out.println(task.getId() + ": " + task.getTitle());
+        System.out.println("=== Scor urgență (baseDays=5) ===");
+        System.out.println("Total: " + taskService.getTotalUrgencyScore(5));
+        System.out.println("=== Audit Log ===");
+        taskService.printAuditLog();
+        try {
+            taskService.assignTask("T999", "George");
+        } catch (Exception e) {
+            System.out.println("TaskNotFoundException: " + e.getMessage());
+        }
+         try {
+            taskService.addTask("Fix login bug", Priority.PriorityLevel.CRITICAL);
+        } catch (Exception e) {
+            System.out.println("DuplicateTaskException: " + e.getMessage());
+        }
+
+        
     }
 }
 
