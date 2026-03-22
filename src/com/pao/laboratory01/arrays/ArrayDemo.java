@@ -16,6 +16,8 @@ import java.util.Arrays;
 public class ArrayDemo {
     public static void main(String[] args) {
 
+        // TODO LINK repo: bit.ly/4spF1HD
+
         // === 1. Declarare ===
         int[] arr = {5, 2, 8, 1, 9};
 
