@@ -35,24 +35,23 @@ Command Pattern separă obiectul care emite o comandă de cel care o execută. �
 | # | Pachet | Concept principal | Timp estimat | Teste automate |
 |---|--------|-------------------|--------------|----------------|
 | 1 | [`exercise1/`](exercise1/Readme.md) | Enum cu metode abstracte, mașină de stări, undo, sistem de tracking comenzi eCommerce | ~35 min | ✓ (3 părți) |
-| 2 | [`exercise2/`](exercise2/Readme.md) | Sealed class hierarchy, compoziție, extindere sistem comenzi eCommerce | ~35 min | ✓ (3 părți) |
+| 2 | [`exercise2/`](exercise2/Readme.md) | Sealed class hierarchy, compoziție, extindere sistem comenzi eCommerce | ~20 min | ✓ (flat) |
 | 3 | [`exercise3/`](exercise3/Readme.md) | Analiză avansată: rapoarte, statistici și workflow-uri automate pentru comenzi | ~45 min | manual |
-| 4 *(bonus)* | [`exercise4/`](exercise4/Readme.md) | Enum singleton, validator chain Java 9 | ~30 min | manual |
+| 4 *(bonus)* | [`exercise4/Readme.md`](exercise4/Readme.md) | Enum singleton, validator chain Java 9 | ~30 min | manual |
 
-> **Total estimat:** ~1h55 min (fără bonus) · ~2h25 min (cu bonus)
+> **Total estimat:** ~1h40 min (fără bonus) · ~2h10 min (cu bonus)
 
 ---
 
 ## Cum rulezi testele automate
 
-Deschide `exercise1/Test.java` sau `exercise2/Test.java` în IntelliJ și apasă **Run**.
+Deschide `exercise1/Test.java` sau `exercise2/Checker.java` în IntelliJ și apasă **Run**.
 
 Directorul de lucru trebuie să fie **rădăcina proiectului** (`paoj-2026/`):
 `Run → Edit Configurations → Working directory → $PROJECT_DIR$`
 
-Fiecare exercițiu testat are **mai multe părți** (`partA`, `partB`, `partC`) care
-se construiesc incremental. Rezolvă câte o parte pe rând și rulează testele pentru
-feedback imediat.
+- Pentru **exercise1**, testele sunt organizate pe părți (`partA`, `partB`, `partC`).
+- Pentru **exercise2**, testele sunt fișiere `.in`/`.out` direct în `tests/` (nu există subdirectoare partA/partB/partC).
 
 ---
 
@@ -65,7 +64,6 @@ feedback imediat.
 | [exercise1/Test.java](exercise1/Test.java) | Runner teste automate Ex 1    |
 | [exercise2/Readme.md](exercise2/Readme.md) | Cerința completă Ex 2         |
 | [exercise2/Main.java](exercise2/Main.java) | Punct de intrare Ex 2         |
-| [exercise2/Test.java](exercise2/Test.java) | Runner teste automate Ex 2    |
+| [exercise2/Checker.java](exercise2/Checker.java) | Runner teste automate Ex 2    |
 | [exercise3/Readme.md](exercise3/Readme.md) | Cerința completă Ex 3         |
 | [exercise3/Main.java](exercise3/Main.java) | Punct de intrare Ex 3         |
-| [exercise3/Readme.md](exercise4/Readme.md) | Cerința completă Ex 3 (bonus) |

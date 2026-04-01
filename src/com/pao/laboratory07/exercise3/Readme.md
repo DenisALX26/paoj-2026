@@ -1,51 +1,119 @@
-# Exercițiul 3 (BONUS) — Analiză avansată și workflow-uri automate pentru comenzi eCommerce
+# Exercițiul 3 (BONUS) — Analiză cu Stream API pentru comenzi
 
 > **Pachet:** `com.pao.laboratory07.exercise3`
-> **Timp estimat:** ~45 min · **Teste automate:** nu (demonstrație în `Main.java`)
+> **Timp estimat:** ~30 min · **Teste automate:** nu (demonstrație în `Main.java`)
 
 ---
 
-## Scop și context
+## Scop
 
-Acest exercițiu bonus extinde sistemul de tracking al comenzilor eCommerce cu funcționalități avansate de analiză, raportare și automatizare a fluxurilor de lucru. Vei integra și extinde ierarhia de comenzi, adăugând statistici, rapoarte și acțiuni automate (ex: notificări, procesări în masă, generare de rapoarte periodice).
-
----
-
-## Cerințe generale
-
-- Integrează și extinde funcționalitățile de la exercițiul 2 (Comanda, tipuri de comenzi, enumuri, interfețe, polimorfism etc.).
-- Demonstrează în `Main.java` (cu output clar și comentarii) următoarele:
-  1. Gruparea comenzilor după tip și afișarea pentru fiecare tip a mediei valorilor.
-  2. Identificarea și afișarea comenzilor cu valoare peste media tuturor comenzilor.
-  3. Pentru fiecare comandă, afișează și dacă este specială (unde e cazul).
-  4. Permite filtrarea comenzilor după un prag de valoare dat ca argument.
-  5. Permite sortarea comenzilor după client, apoi după valoare (criteriu compus).
-  6. Implementează o funcționalitate de workflow automat: de exemplu, procesarea automată a tuturor precomenzilor cu data de livrare în trecut sau generarea unui raport sumar pentru fiecare tip de comandă.
-  7. Demonstrează tratarea cazurilor limită și a erorilor (input invalid, tip necunoscut, date lipsă etc.).
-- Outputul trebuie să fie clar, structurat și să acopere toate cerințele, cu comentarii explicative în cod.
+Extinde clasele `Comanda` din exercițiul 2 (adaugă câmpul `client`) și implementează operații de analiză și filtrare folosind **Stream API**.
 
 ---
 
-## Exemple de funcționalități avansate (poți alege sau combina):
-- Rapoarte periodice (ex: total comenzi/lună, top clienți, etc.)
-- Undo/redo pentru operații pe comenzi
-- Notificări automate pentru precomenzi cu livrare depășită
-- Integrare cu un sistem de validare a datelor (ex: validare date client, valoare pozitivă, etc.)
-- Exportul datelor într-un format structurat (ex: CSV, JSON)
+## Extensia claselor din Exercițiul 2
+
+Refolosește ierarhia sealed din exercițiul 2. Adaugă câmpul `String client` la clasa `Comanda`:
+
+```java
+public abstract sealed class Comanda permits ComandaStandard, ComandaRedusa, ComandaGratuita {
+    protected String nume;
+    protected String client;  // ← ADAUG ACEASTA
+    // ...
+}
+```
 
 ---
 
-## Demonstrație și evaluare
+## Structura inputului
 
-- Nu există input/output fix sau test automat.
-- Toate funcționalitățile trebuie să fie vizibile și comentate în outputul din `Main.java`.
-- Se acordă 0.5% bonus la nota finală dacă exercițiul este complet și demonstrat corect.
-- Poate fi folosit pentru a atinge nota maximă la laborator.
+- Prima linie: numărul de comenzi `N`
+- Următoarele `N` linii, fiecare în formatul din exercițiul 2, urmat de clientul comenzii:
+  - `STANDARD <nume> <pret> <client>`
+  - `DISCOUNTED <nume> <pret> <discountProcent> <client>`
+  - `GIFT <nume> <client>`
+- Următoarele linii: comenzi (`STATS`, `FILTER <threshold>`, `SORT`, `SPECIAL`, `QUIT`)
 
 ---
 
-## Hints
-- Folosește excepții pentru tratarea cazurilor limită și a erorilor.
-- Comentează clar fiecare secțiune de output și cod.
-- Poți folosi orice funcționalitate Java relevantă (stream-uri, colecții, etc.).
-- Fii creativ: poți adăuga orice funcționalitate avansată relevantă pentru sistemul de comenzi eCommerce.
+## Structura outputului
+
+**Pentru fiecare comandă**, pe câte o linie (format din exercițiul 2):
+```
+STANDARD: <nume>, pret: X.XX lei [PLACED] - client: <client>
+```
+
+**Apoi, la fiecare comandă primită:**
+
+- `STATS` — Afișează mediile prețurilor finale grupate pe tip (STANDARD, DISCOUNTED, GIFT)
+- `FILTER <threshold>` — Afișează comenzile cu preț final ≥ threshold
+- `SORT` — Afișează comenzile sortate după client, apoi după preț final (crescător)
+- `SPECIAL` — Afișează comenzile cu discont mai mare de 15% (dacă sunt DISCOUNTED)
+- `QUIT` — Programul se termină
+
+---
+
+## Exemplu complet
+
+**Input:**
+```
+5
+STANDARD Laptop 2500.0 Alice
+DISCOUNTED Headphones 200.0 20 Bob
+GIFT Sticker Charlie
+STANDARD Mouse 80.0 Alice
+DISCOUNTED Keyboard 300.0 10 Dave
+STATS
+FILTER 100
+SORT
+SPECIAL
+QUIT
+```
+
+**Output (exemplu cu flexibilitate):**
+```
+STANDARD: Laptop, pret: 2500.00 lei [PLACED] - client: Alice
+DISCOUNTED: Headphones, pret: 160.00 lei (-20%) [PLACED] - client: Bob
+GIFT: Sticker, gratuit [PLACED] - client: Charlie
+STANDARD: Mouse, pret: 80.00 lei [PLACED] - client: Alice
+DISCOUNTED: Keyboard, pret: 270.00 lei (-10%) [PLACED] - client: Dave
+
+--- STATS ---
+STANDARD: medie = 1290.00 lei
+DISCOUNTED: medie = 215.00 lei
+GIFT: medie = 0.00 lei
+
+--- FILTER (>= 100.00) ---
+STANDARD: Laptop, pret: 2500.00 lei - client: Alice
+DISCOUNTED: Headphones, pret: 160.00 lei - client: Bob
+DISCOUNTED: Keyboard, pret: 270.00 lei - client: Dave
+
+--- SORT (by client, then by pret) ---
+STANDARD: Mouse, pret: 80.00 lei - client: Alice
+STANDARD: Laptop, pret: 2500.00 lei - client: Alice
+DISCOUNTED: Keyboard, pret: 270.00 lei - client: Dave
+DISCOUNTED: Headphones, pret: 160.00 lei - client: Bob
+GIFT: Sticker, gratuit - client: Charlie
+
+--- SPECIAL (discount > 15%) ---
+DISCOUNTED: Headphones, pret: 160.00 lei (-20%) - client: Bob
+```
+
+---
+
+## Indicații
+
+Utilizează următoarele concepte Java:
+- `Stream.collect(groupingBy(...))` pentru grupare și `averagingDouble()` pentru medii
+- `stream().filter(...).toList()` pentru filtrare
+- `Comparator.comparing(...).thenComparing(...)` pentru sortare compusă
+- `instanceof` pattern matching pentru identificarea tipului comenzii
+- Excepții custom pentru input invalid
+
+---
+
+## Testare
+
+Demonstrează în `Main.java` toate operațiile de mai sus. Output-ul trebuie să fie clar și ușor de urmărit.
+
+Se acordă **0.4% bonus** la nota finală dacă exercițiul este complet și funcțional.

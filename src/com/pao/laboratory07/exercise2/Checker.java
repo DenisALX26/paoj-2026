@@ -2,9 +2,9 @@ package com.pao.laboratory07.exercise2;
 
 import com.pao.test.IOTest;
 
-public class Test {
+public class Checker {
     public static void main(String[] args) {
-        IOTest.runParts("src/com/pao/laboratory07/exercise2/tests", Main::main);
+        IOTest.runFlat("src/com/pao/laboratory07/exercise2/tests", Main::main);
     }
 }
 
