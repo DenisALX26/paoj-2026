@@ -225,18 +225,18 @@ Trimite link-ul fork-ului pe formularul următor, ca să știm cui oferim puncta
 | Componentă              | Pondere |
 |-------------------------|---------|
 | Proiect individual      | 50%     |
-| Laboratoare (10 din 14) | 25%     |
+| Laboratoare (12 din 14 fara bonus, 10/11 cu 10/5 bonusuri) | 25%     |
 | Activitate și prezență  | 25%     |
 
 #### Prezență
 
-- **10 prezențe obligatorii** din 14 laboratoare
+- **12 prezențe obligatorii** din 14 laboratoare (sau 11+5bonusuri, sau 10+10 bonusuri)
 - Laburile 1–3 sunt punctate pentru prezență + soluție completă
 - La Lab 04, exercițiul bonus era opțional — absența lui nu scade punctajul
 
 #### Laboratoarele 4–14
 
-Fiecare laborator valorează **2.5%** din nota finală:
+Fiecare laborator valorează **2.08(3)%** din nota finală:
 
 | Ce rezolvi                       | Punctaj                   |
 |----------------------------------|---------------------------|
