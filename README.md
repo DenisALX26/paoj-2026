@@ -72,15 +72,36 @@ Steps needed to run the tests:
 
 3. How to run in terminal?
 
-    # Compile:
-    ```
-    javac -cp "lib/java-diff-utils-4.15.jar;src" -d output src/com/pao/laboratory06/exercise1/*.java
-    ```
+#### Windows PowerShell
+```powershell
+# Compile all files in any folder (replace PATH with src or src\com\pao\laboratory06, etc.)
+javac -d output @((Get-ChildItem -Recurse -Filter "*.java" -Path PATH).FullName)
 
-    # Run:
-    java -cp "lib/java-diff-utils-4.15.jar;src" com.pao.laboratory06.exercise1.Test
+# With JAR (for tests)
+javac -d output -cp "lib\java-diff-utils-4.15.jar" @((Get-ChildItem -Recurse -Filter "*.java" -Path PATH).FullName)
 
-    # (On macOS/Linux, replace ';' with ':')
+# Run
+java -cp output com.pao.laboratory06.exercise1.Main
+java -cp "output;lib\java-diff-utils-4.15.jar" com.pao.laboratory06.exercise1.Test
+```
+
+#### macOS / Linux / WSL
+```bash
+# Compile all files in any folder (replace PATH with src or src/com/pao/laboratory06, etc.)
+javac -d output $(find PATH -name "*.java" -type f)
+
+# With JAR (for tests)
+javac -d output -cp "lib/java-diff-utils-4.15.jar" $(find PATH -name "*.java" -type f)
+
+# Run
+java -cp output com.pao.laboratory06.exercise1.Main
+java -cp "output:lib/java-diff-utils-4.15.jar" com.pao.laboratory06.exercise1.Test
+```
+
+⚠️ **Key:** Replace `PATH` with your desired folder — includes all subdirectories automatically.
+- Full project: `src`
+- Single lab: `src/com/pao/laboratory06`
+- Single exercise: `src/com/pao/laboratory06/exercise1`
 
 ---
 ## Revenind la trimiterea solutiilor
