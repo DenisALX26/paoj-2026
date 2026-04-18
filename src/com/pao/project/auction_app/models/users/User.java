@@ -8,8 +8,15 @@ public abstract class User {
     protected String email;
     protected String password;
 
-    public User(UUID id, String userName, String email, String password) {
+    public User(String userName, String email, String password) {
         this.id = UUID.randomUUID();
+        this.userName = userName;
+        this.email = email;
+        this.password = password;
+    }
+
+    public User(UUID id, String userName, String email, String password) {
+        this.id = id;
         this.userName = userName;
         this.email = email;
         this.password = password;
