@@ -43,3 +43,6 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+
+### ignore .csv files with data
+src/com/pao/project/auction_app/data/*.csv
