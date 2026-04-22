@@ -35,6 +35,8 @@ public abstract class Car extends Vehicle{
         return color;
     }
 
+    public abstract String getCarType();
+
     @Override
     public String getVehicleCategory() {
         return "Car";
