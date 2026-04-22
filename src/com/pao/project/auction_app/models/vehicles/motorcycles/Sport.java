@@ -14,11 +14,11 @@ public class Sport extends Motorcycle {
         this.hasQuickShifter = hasQuickShifter;
     }
 
-    public boolean isHasCorneringABS() {
+    public boolean hasCorneringABS() {
         return hasCorneringABS;
     }
 
-    public boolean isHasQuickShifter() {
+    public boolean hasQuickShifter() {
         return hasQuickShifter;
     }
 }
