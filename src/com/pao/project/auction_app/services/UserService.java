@@ -34,7 +34,7 @@ public class UserService {
         if (userCache.containsKey(email)) {
             throw new Exception("Email already in use");
         }
-        
+
         User newUser;
         switch (type.toLowerCase()) {
             case "seller":
@@ -104,5 +104,9 @@ public class UserService {
         } catch (IOException e) {
             System.err.println("Error loading users from file: " + e.getMessage());
         }
+    }
+
+    public User getUserByEmail(String email) {
+        return userCache.get(email);
     }
 }
