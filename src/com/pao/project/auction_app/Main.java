@@ -2,6 +2,7 @@ package com.pao.project.auction_app;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.Scanner;
 import java.util.UUID;
 
@@ -12,6 +13,8 @@ import com.pao.project.auction_app.models.users.*;
 import com.pao.project.auction_app.models.vehicles.Vehicle;
 import com.pao.project.auction_app.models.vehicles.cars.*;
 import com.pao.project.auction_app.models.vehicles.cars.enums.*;
+import com.pao.project.auction_app.models.vehicles.motorcycles.*;
+import com.pao.project.auction_app.models.vehicles.motorcycles.enums.*;
 import com.pao.project.auction_app.services.*;
 import com.pao.project.auction_app.utils.DataSeeder;
 
@@ -105,7 +108,9 @@ public class Main {
             System.out.println("1. Add Vehicle for Sale");
             System.out.println("2. Launch Auction");
             System.out.println("3. View My Vehicles");
-            System.out.println("4. View My Active Auctions");
+            System.out.println("4. View My Cars");
+            System.out.println("5. View My Motorcycles");
+            System.out.println("6. View My Active Auctions");
         } else {
             System.out.println("1. View Active Auctions");
             System.out.println("2. Place a Bid");
@@ -133,12 +138,22 @@ public class Main {
             }
             case "3" -> {
                 if (userType.equalsIgnoreCase("Seller")) {
-                    viewSellerVehicles(currentUser.getId(), false);
+                    viewSellerVehicles(currentUser.getId(), false, Optional.empty());
                 } else {
                     checkBalance();
                 }
             }
             case "4" -> {
+                if (userType.equalsIgnoreCase("Seller")) {
+                    viewSellerVehicles(currentUser.getId(), false, Optional.of("car"));
+                }
+            }
+            case "5" -> {
+                if (userType.equalsIgnoreCase("Seller")) {
+                    viewSellerVehicles(currentUser.getId(), false, Optional.of("motorcycle"));
+                }
+            }
+            case "6" -> {
                 if (userType.equalsIgnoreCase("Seller")) {
                     viewSellerAuctions(currentUser.getId());
                 }
@@ -167,6 +182,24 @@ public class Main {
         System.out.println("Mileage: " + vehicle.getMileage() + " km");
         System.out.println("Price: " + vehicle.getPrice() + " EUR");
         System.out.println("Engine Details: " + vehicle.getEngine().toString());
+        if (vehicle instanceof Motorcycle) {
+            System.out.println("ABS: " + (((Motorcycle) vehicle).isHasABS() ? "Yes" : "No"));
+            System.out.println("A2 Compatible: " + (((Motorcycle) vehicle).isA2Compatible() ? "Yes" : "No"));
+            System.out.println("Number of Cylinders: " + ((Motorcycle) vehicle).getNumberOfCylinders());
+            if (vehicle instanceof Naked) {
+                System.out.println("Street Fighter: " + (((Naked) vehicle).isStreetFighter() ? "Yes" : "No"));
+                System.out.println("Riding Modes: " + String.join(", ", ((Naked) vehicle).getRidingModes().toString()));
+                System.out.println("Headlight Type: " + ((Naked) vehicle).getHeadlightType());
+            } else if (vehicle instanceof Sport) {
+                System.out.println("Cornering ABS: " + (((Sport) vehicle).hasCorneringABS() ? "Yes" : "No"));
+                System.out.println("Quick Shifter: " + (((Sport) vehicle).hasQuickShifter() ? "Yes" : "No"));
+            }
+        } else if (vehicle instanceof Car) {
+            System.out.println("Number of Doors: " + ((Car) vehicle).getNumberOfDoors());
+            System.out.println("Body Type: " + ((Car) vehicle).getBodyType());
+            System.out.println("Drive Type: " + ((Car) vehicle).getDriveType());
+            System.out.println("Color: " + ((Car) vehicle).getColor());
+        }
         System.out.println("\nPress 1 to edit price\nPress 2 to edit mileage\nPress Enter to go back...");
         choice = scanner.nextLine();
         switch (choice) {
@@ -190,14 +223,23 @@ public class Main {
         clearConsole();
     }
 
-    private static void viewSellerVehicles(UUID sellerId, boolean filterActive) {
+    private static void viewSellerVehicles(UUID sellerId, boolean sellableOnly, Optional<String> vehicleType) {
         clearConsole();
         System.out.println("\n--- My Vehicles for Sale ---");
-        List<Vehicle> vehicles = filterActive
-                ? vehicleService.getVehiclesByOwnerId(sellerId).stream().filter(Vehicle::isSellable).toList()
-                : vehicleService.getVehiclesByOwnerId(sellerId);
-
-        System.out.println(vehicles.size() + " vehicle(s) found.");
+        
+        List<Vehicle> vehicles = vehicleService.getVehiclesByOwnerId(sellerId).stream()
+                .filter(v -> !sellableOnly || v.isSellable())
+                .filter(v -> vehicleType
+                        .map(type -> {
+                            if (type.equalsIgnoreCase("car"))
+                                return v instanceof Car;
+                            else if (type.equalsIgnoreCase("motorcycle"))
+                                return v instanceof Motorcycle;
+                            else
+                                return true;
+                        })
+                        .orElse(true))
+                .toList();
 
         boolean hasVehicles = !vehicles.isEmpty();
 
@@ -206,8 +248,9 @@ public class Main {
                 System.out.println("You have no vehicles listed for sale.");
                 hasVehicles = false;
             } else {
-                vehicles.forEach(
-                        vehicle -> System.out.printf("%d. %s\n", vehicles.indexOf(vehicle) + 1, vehicle.toString()));
+                for (int i = 0; i < vehicles.size(); i++) {
+                    System.out.printf("%d. %s\n", i + 1, vehicles.get(i).toString());
+                }
             }
 
             if (!hasVehicles) {
@@ -224,7 +267,6 @@ public class Main {
             }
             showVehicleDetails(vehicles.get(Integer.parseInt(choice) - 1), choice);
         }
-
     }
 
     private static void addVehicleForSale() {
@@ -239,19 +281,19 @@ public class Main {
                     break;
                 }
                 case "2" -> {
-                    System.out.println("Adding Electric Car - Feature coming soon!");
+                    addElectricCar();
                     break;
                 }
                 case "3" -> {
-                    System.out.println("Adding Hybrid Car - Feature coming soon!");
+                    addHybridCar();
                     break;
                 }
                 case "4" -> {
-                    System.out.println("Adding Naked Motorcycle - Feature coming soon!");
+                    addNakedMotorcycle();
                     break;
                 }
                 case "5" -> {
-                    System.out.println("Adding Sport Motorcycle - Feature coming soon!");
+                    addSportMotorcycle();
                     break;
                 }
                 case "0" -> {
@@ -264,6 +306,213 @@ public class Main {
                 }
             }
             return;
+        }
+    }
+
+    private static void addSportMotorcycle() {
+        clearConsole();
+        System.out.println("Enter Motorcycle Details:\nManufacturer: ");
+        String manufacturer = scanner.nextLine();
+        System.out.println("Model: ");
+        String model = scanner.nextLine();
+        System.out.println("Year: ");
+        int year = Integer.parseInt(scanner.nextLine());
+        System.out.println("Mileage (km): ");
+        int mileage = Integer.parseInt(scanner.nextLine());
+        System.out.println("Price (EUR): ");
+        int price = Integer.parseInt(scanner.nextLine());
+        System.out.println("Engine Power (HP): ");
+        int power = Integer.parseInt(scanner.nextLine());
+        System.out.println("Engine Torque (Nm): ");
+        int torque = Integer.parseInt(scanner.nextLine());
+        FuelType fuelType = FuelType.PETROL;
+        System.out.println("Fuel Consumption (L/100km): ");
+        double fuelConsumption = Double.parseDouble(scanner.nextLine());
+        System.out.println("Engine Capacity (cc): ");
+        Double engineCapacity = Double.parseDouble(scanner.nextLine());
+        System.out.println("Weight (kg): ");
+        Double weight = Double.parseDouble(scanner.nextLine());
+        System.out.println("Has ABS? (yes/no): ");
+        boolean hasABS = scanner.nextLine().equalsIgnoreCase("yes");
+        System.out.println("Is A2 Compatible? (yes/no): ");
+        boolean isA2Compatible = scanner.nextLine().equalsIgnoreCase("yes");
+        System.out.println("Number of Cylinders: ");
+        int numberOfCylinders = Integer.parseInt(scanner.nextLine());
+        System.out.println("Has Cornering ABS? (yes/no): ");
+        boolean hasCorneringABS = scanner.nextLine().equalsIgnoreCase("yes");
+        System.out.println("Has Quick Shifter? (yes/no): ");
+        boolean hasQuickShifter = scanner.nextLine().equalsIgnoreCase("yes");
+
+        ThermalEngine engine = new ThermalEngine(power, torque, fuelType, fuelConsumption);
+        Sport newMotorcycle = new Sport(manufacturer, model, year, price, mileage, engine, engineCapacity, weight,
+                hasABS, isA2Compatible, numberOfCylinders, hasCorneringABS, hasQuickShifter);
+
+        try {
+            engineService.addEngine(engine);
+            vehicleService.addVehicle(newMotorcycle, currentUser.getId());
+            clearConsole();
+            System.out.println("Sport Motorcycle added successfully!");
+        } catch (Exception e) {
+            clearConsole();
+            System.out.println("Error adding vehicle: " + e.getMessage());
+        }
+    }
+
+    private static void addNakedMotorcycle() {
+        clearConsole();
+        System.out.println("Enter Motorcycle Details:\nManufacturer: ");
+        String manufacturer = scanner.nextLine();
+        System.out.println("Model: ");
+        String model = scanner.nextLine();
+        System.out.println("Year: ");
+        int year = Integer.parseInt(scanner.nextLine());
+        System.out.println("Mileage (km): ");
+        int mileage = Integer.parseInt(scanner.nextLine());
+        System.out.println("Price (EUR): ");
+        int price = Integer.parseInt(scanner.nextLine());
+        System.out.println("Engine Power (HP): ");
+        int power = Integer.parseInt(scanner.nextLine());
+        System.out.println("Engine Torque (Nm): ");
+        int torque = Integer.parseInt(scanner.nextLine());
+        FuelType fuelType = FuelType.PETROL;
+        System.out.println("Fuel Consumption (L/100km): ");
+        double fuelConsumption = Double.parseDouble(scanner.nextLine());
+        System.out.println("Engine Capacity (cc): ");
+        Double engineCapacity = Double.parseDouble(scanner.nextLine());
+        System.out.println("Weight (kg): ");
+        Double weight = Double.parseDouble(scanner.nextLine());
+        System.out.println("Has ABS? (yes/no): ");
+        boolean hasABS = scanner.nextLine().equalsIgnoreCase("yes");
+        System.out.println("Is A2 Compatible? (yes/no): ");
+        boolean isA2Compatible = scanner.nextLine().equalsIgnoreCase("yes");
+        System.out.println("Number of Cylinders: ");
+        int numberOfCylinders = Integer.parseInt(scanner.nextLine());
+        System.out.println("Is Street Fighter? (yes/no): ");
+        boolean isStreetFighter = scanner.nextLine().equalsIgnoreCase("yes");
+        System.out.println("Riding Modes (comma separated - e.g. SPORT, STREET, RAIN, ECO, CUSTOM): ");
+        RidingMode[] ridingModes = parseRidingModes(scanner.nextLine());
+        System.out.println("Headlight Type (HALOGEN/LED/XENON): ");
+        HeadlightType headlightType = HeadlightType.valueOf(scanner.nextLine().toUpperCase());
+
+        ThermalEngine engine = new ThermalEngine(power, torque, fuelType, fuelConsumption);
+        Naked newMotorcycle = new Naked(manufacturer, model, year, price, mileage, engine, engineCapacity, weight,
+                hasABS, isA2Compatible, numberOfCylinders, isStreetFighter, ridingModes, headlightType);
+
+        try {
+            engineService.addEngine(engine);
+            vehicleService.addVehicle(newMotorcycle, currentUser.getId());
+            clearConsole();
+            System.out.println("Naked Motorcycle added successfully!");
+        } catch (Exception e) {
+            clearConsole();
+            System.out.println("Error adding vehicle: " + e.getMessage());
+        }
+    }
+
+    private static RidingMode[] parseRidingModes(String nextLine) {
+        return List.of(nextLine.split(",")).stream().map(mode -> RidingMode.valueOf(mode.trim().toUpperCase()))
+                .toArray(RidingMode[]::new);
+    }
+
+    private static void addHybridCar() {
+        clearConsole();
+        System.out.println("Enter Car Details:\nManufacturer: ");
+        String manufacturer = scanner.nextLine();
+        System.out.println("Model: ");
+        String model = scanner.nextLine();
+        System.out.println("Year: ");
+        int year = Integer.parseInt(scanner.nextLine());
+        System.out.println("Mileage (km): ");
+        int mileage = Integer.parseInt(scanner.nextLine());
+        System.out.println("Price (EUR): ");
+        int price = Integer.parseInt(scanner.nextLine());
+        System.out.println("Engine Power (HP): ");
+        int power = Integer.parseInt(scanner.nextLine());
+        System.out.println("Engine Torque (Nm): ");
+        int torque = Integer.parseInt(scanner.nextLine());
+        System.out.println("Battery Capacity (kWh): ");
+        int batteryCapacity = Integer.parseInt(scanner.nextLine());
+        System.out.println("Range (km): ");
+        int range = Integer.parseInt(scanner.nextLine());
+        System.out.println("Charging Time (hours): ");
+        double chargingTime = Double.parseDouble(scanner.nextLine());
+        System.out.println("Has Fast Charging? (yes/no): ");
+        boolean hasFastCharging = scanner.nextLine().equalsIgnoreCase("yes");
+        System.out.println("Fuel Type (PETROL/DIESEL): ");
+        FuelType fuelType = FuelType.valueOf(scanner.nextLine().toUpperCase());
+        System.out.println("Fuel Consumption (L/100km): ");
+        double fuelConsumption = Double.parseDouble(scanner.nextLine());
+        System.out.println("Number of Doors: ");
+        int doors = Integer.parseInt(scanner.nextLine());
+        System.out.println("Body Type (SEDAN/HATCHBACK/SUV): ");
+        BodyType bodyType = BodyType.valueOf(scanner.nextLine().toUpperCase());
+        System.out.println("Drive Type (FWD/RWD/AWD): ");
+        DriveType driveType = DriveType.valueOf(scanner.nextLine().toUpperCase());
+        System.out.println("Color: ");
+        String color = scanner.nextLine();
+
+        ThermalEngine thermalEngine = new ThermalEngine(power, torque, fuelType, fuelConsumption);
+        ElectricEngine electricEngine = new ElectricEngine(power, torque, batteryCapacity, range, chargingTime,
+                hasFastCharging);
+        HybridEngine engine = new HybridEngine(power, torque, thermalEngine, electricEngine);
+        HybridCar newCar = new HybridCar(manufacturer, model, year, price, mileage, engine, doors, bodyType,
+                driveType, color);
+        try {
+            engineService.addEngine(engine);
+            vehicleService.addVehicle(newCar, currentUser.getId());
+            clearConsole();
+            System.out.println("Hybrid Car added successfully!");
+        } catch (Exception e) {
+            clearConsole();
+            System.out.println("Error adding vehicle: " + e.getMessage());
+        }
+    }
+
+    private static void addElectricCar() {
+        clearConsole();
+        System.out.println("Enter Car Details:\nManufacturer: ");
+        String manufacturer = scanner.nextLine();
+        System.out.println("Model: ");
+        String model = scanner.nextLine();
+        System.out.println("Year: ");
+        int year = Integer.parseInt(scanner.nextLine());
+        System.out.println("Mileage (km): ");
+        int mileage = Integer.parseInt(scanner.nextLine());
+        System.out.println("Price (EUR): ");
+        int price = Integer.parseInt(scanner.nextLine());
+        System.out.println("Engine Power (HP): ");
+        int power = Integer.parseInt(scanner.nextLine());
+        System.out.println("Engine Torque (Nm): ");
+        int torque = Integer.parseInt(scanner.nextLine());
+        System.out.println("Battery Capacity (kWh): ");
+        int batteryCapacity = Integer.parseInt(scanner.nextLine());
+        System.out.println("Range (km): ");
+        int range = Integer.parseInt(scanner.nextLine());
+        System.out.println("Charging Time (hours): ");
+        double chargingTime = Double.parseDouble(scanner.nextLine());
+        System.out.println("Has Fast Charging? (yes/no): ");
+        boolean hasFastCharging = scanner.nextLine().equalsIgnoreCase("yes");
+        System.out.println("Number of Doors: ");
+        int doors = Integer.parseInt(scanner.nextLine());
+        System.out.println("Body Type (SEDAN/HATCHBACK/SUV): ");
+        BodyType bodyType = BodyType.valueOf(scanner.nextLine().toUpperCase());
+        System.out.println("Drive Type (FWD/RWD/AWD): ");
+        DriveType driveType = DriveType.valueOf(scanner.nextLine().toUpperCase());
+        System.out.println("Color: ");
+        String color = scanner.nextLine();
+
+        ElectricEngine engine = new ElectricEngine(power, torque, batteryCapacity, range, chargingTime,
+                hasFastCharging);
+        ElectricCar newCar = new ElectricCar(manufacturer, model, year, price, mileage, engine, doors, bodyType,
+                driveType, color);
+        try {
+            engineService.addEngine(engine);
+            vehicleService.addVehicle(newCar, currentUser.getId());
+            clearConsole();
+            System.out.println("Electric Car added successfully!");
+        } catch (Exception e) {
+            clearConsole();
+            System.out.println("Error adding vehicle: " + e.getMessage());
         }
     }
 
