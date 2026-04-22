@@ -18,8 +18,7 @@ import com.pao.project.auction_app.models.engines.Engine;
 import com.pao.project.auction_app.models.vehicles.Vehicle;
 import com.pao.project.auction_app.models.vehicles.cars.Car;
 import com.pao.project.auction_app.models.vehicles.cars.ElectricCar;
-import com.pao.project.auction_app.models.vehicles.cars.enums.BodyType;
-import com.pao.project.auction_app.models.vehicles.cars.enums.DriveType;
+import com.pao.project.auction_app.models.vehicles.cars.enums.*;
 import com.pao.project.auction_app.models.vehicles.motorcycles.Motorcycle;
 
 public class VehicleService {
@@ -155,10 +154,8 @@ public class VehicleService {
         }
     }
 
-    private Object loadMotorcycleFromFile(String vehicleType, String subType, String manufacturer, String model,
+    private void loadMotorcycleFromFile(String vehicleType, String subType, String manufacturer, String model,
             int year, int mileage, int price, UUID engineId) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'loadMotorcycleFromFile'");
     }
 
     public List<Vehicle> getVehiclesByOwnerId(UUID ownerId) {
