@@ -80,4 +80,8 @@ public abstract class Vehicle {
         return engine;
     }
 
+    public void setSellable(boolean isSellable) {
+        this.isSellable = isSellable;
+    }
+
 }
