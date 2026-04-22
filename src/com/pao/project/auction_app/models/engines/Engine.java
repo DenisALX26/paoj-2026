@@ -29,7 +29,7 @@ public abstract class Engine {
 
     @Override
     public String toString() {
-        return String.format("%s Engine: %d HP, %d Nm", this.getClass().getSimpleName(), horsepower, torque);
+        return String.format("%s %d HP, %d Nm",getEngineType(), horsepower, torque);
     }
 
     
