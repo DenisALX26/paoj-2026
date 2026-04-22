@@ -34,4 +34,13 @@ public class ElectricEngine extends Engine {
     public String getEngineType() {
         return "Electric";
     }
+
+    @Override
+    public String toString() {
+        return String.format("%s %d HP, %d Nm, %d kWh, %d km range, %.1f h charging time, Fast Charging: %s",
+                getEngineType(), getHorsepower(), getTorque(), batteryCapacity, range, chargingTime,
+                hasFastCharging ? "Yes" : "No");
+    }
+
+    
 }

@@ -24,4 +24,11 @@ public class ThermalEngine extends Engine {
     public String getEngineType() {
         return "Thermal";
     }
+
+    @Override
+    public String toString() {
+        return String.format("%s %d HP, %d Nm, Fuel Type: %s, Fuel Consumption: %.1f L/100km", getEngineType(),
+                getHorsepower(), getTorque(), fuelType, fuelConsumption);
+    }
+
 }

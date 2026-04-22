@@ -1,6 +1,6 @@
 package com.pao.project.auction_app.models.engines;
 
-public class HybridEngine extends Engine{
+public class HybridEngine extends Engine {
     private final ThermalEngine thermalEngine;
     private final ElectricEngine electricEngine;
 
@@ -22,4 +22,12 @@ public class HybridEngine extends Engine{
     public String getEngineType() {
         return "Hybrid";
     }
+
+    @Override
+    public String toString() {
+        return String.format("%s %d HP, %d Nm\nThermal Engine: %s\nElectric Engine: %s", getEngineType(),
+                getHorsepower(),
+                getTorque(), thermalEngine.toString(), electricEngine.toString());
+    }
+
 }
