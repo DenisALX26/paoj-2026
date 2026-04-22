@@ -11,6 +11,7 @@ public abstract class Vehicle {
     protected final int year;
     protected int price, mileage;
     protected final Engine engine;
+    protected boolean isSellable = true;
 
     public Vehicle(String manufacturer, String model, int year, int price, int mileage, Engine engine) {
         this.manufacturer = manufacturer;
@@ -54,6 +55,10 @@ public abstract class Vehicle {
         this.mileage = mileage;
     }
 
+    public boolean isSellable() {
+        return isSellable;
+    }
+
     public abstract String getVehicleCategory();
 
     @Override
@@ -69,6 +74,10 @@ public abstract class Vehicle {
     @Override
     public String toString() {
         return String.format("%s %s %d - $%d, %d miles, %s", manufacturer, model, year, price, mileage, engine.toString());
+    }
+
+    public Engine getEngine() {
+        return engine;
     }
 
 }
