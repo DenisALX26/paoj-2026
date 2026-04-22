@@ -1,6 +1,7 @@
 package com.pao.project.auction_app.models.auctions;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -14,17 +15,16 @@ public abstract class Auction {
     protected final double startingPrice;
     protected double currentPrice;
     protected LocalDateTime endTime;
-    protected final List<Bid> bidHistory;
+    protected final List<Bid> bidHistory = new ArrayList<>();
 
-    public Auction(UUID id, Vehicle vehicle, Seller seller, double startingPrice, double currentPrice,
-            LocalDateTime endTime, List<Bid> bidHistory) {
+    public Auction(Vehicle vehicle, Seller seller, double startingPrice,
+            LocalDateTime endTime) {
         this.id = UUID.randomUUID();
         this.vehicle = vehicle;
         this.seller = seller;
         this.startingPrice = startingPrice;
-        this.currentPrice = currentPrice;
         this.endTime = endTime;
-        this.bidHistory = bidHistory;
+        this.currentPrice = startingPrice;
     }
 
     public UUID getId() {
@@ -63,11 +63,12 @@ public abstract class Auction {
         return bidHistory;
     }
 
+    public abstract String getAuctionType();
+
     public abstract boolean placeBid(Bid bid);
 
     @Override
     public String toString() {
-        return String.format("Auction %s | Vehicle: %s | Current Price: %.2f EUR", id.toString().substring(0, 8),
-                vehicle.getModel(), currentPrice);
+        return String.format("Vehicle: %s %s | Current Price: %.2f EUR | Remaining Time: %s", vehicle.getManufacturer(), vehicle.getModel(), currentPrice, endTime.isAfter(LocalDateTime.now()) ? java.time.Duration.between(LocalDateTime.now(), endTime).toHours() + " hours" : "Auction Ended");
     }
 }

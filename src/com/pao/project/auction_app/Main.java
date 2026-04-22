@@ -1,19 +1,18 @@
 package com.pao.project.auction_app;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Scanner;
 import java.util.UUID;
 
-import com.pao.project.auction_app.models.engines.ThermalEngine;
+import com.pao.project.auction_app.models.auctions.*;
+import com.pao.project.auction_app.models.engines.*;
 import com.pao.project.auction_app.models.engines.enums.FuelType;
-import com.pao.project.auction_app.models.users.User;
+import com.pao.project.auction_app.models.users.*;
 import com.pao.project.auction_app.models.vehicles.Vehicle;
-import com.pao.project.auction_app.models.vehicles.cars.ThermalCar;
-import com.pao.project.auction_app.models.vehicles.cars.enums.BodyType;
-import com.pao.project.auction_app.models.vehicles.cars.enums.DriveType;
-import com.pao.project.auction_app.services.EngineService;
-import com.pao.project.auction_app.services.UserService;
-import com.pao.project.auction_app.services.VehicleService;
+import com.pao.project.auction_app.models.vehicles.cars.*;
+import com.pao.project.auction_app.models.vehicles.cars.enums.*;
+import com.pao.project.auction_app.services.*;
 import com.pao.project.auction_app.utils.DataSeeder;
 
 public class Main {
@@ -21,6 +20,7 @@ public class Main {
     private static final UserService userService = UserService.getInstance();
     private static final VehicleService vehicleService = VehicleService.getInstance();
     private static final EngineService engineService = EngineService.getInstance();
+    private static final AuctionService auctionService = AuctionService.getInstance();
     private static User currentUser = null;
 
     public static void main(String[] args) {
@@ -105,6 +105,7 @@ public class Main {
             System.out.println("1. Add Vehicle for Sale");
             System.out.println("2. Launch Auction");
             System.out.println("3. View My Vehicles");
+            System.out.println("4. View My Active Auctions");
         } else {
             System.out.println("1. View Active Auctions");
             System.out.println("2. Place a Bid");
@@ -120,7 +121,7 @@ public class Main {
                 if (userType.equalsIgnoreCase("Seller")) {
                     addVehicleForSale();
                 } else {
-                    System.out.println("View Active Auctions - Feature coming soon!");
+                    printAllAuctions();
                 }
             }
             case "2" -> {
@@ -134,7 +135,12 @@ public class Main {
                 if (userType.equalsIgnoreCase("Seller")) {
                     viewSellerVehicles(currentUser.getId(), false);
                 } else {
-                    System.out.println("Check Balance - Feature coming soon!");
+                    checkBalance();
+                }
+            }
+            case "4" -> {
+                if (userType.equalsIgnoreCase("Seller")) {
+                    viewSellerAuctions(currentUser.getId());
                 }
             }
             case "0" -> {
@@ -304,5 +310,158 @@ public class Main {
         }
     }
 
-    
+    private static void launchAuction() {
+        clearConsole();
+        System.out.println("Select a vehicle to auction:\n");
+        List<Vehicle> vehicles = vehicleService.getVehiclesByOwnerId(currentUser.getId()).stream()
+                .filter(Vehicle::isSellable).toList();
+        for (int i = 0; i < vehicles.size(); i++) {
+            System.out.println((i + 1) + ". " + vehicles.get(i).getManufacturer() + " " + vehicles.get(i).getModel());
+        }
+        System.out.println("\n0. Back to Menu | Enter vehicle number to launch auction");
+        String choice = scanner.nextLine();
+        if (choice.equals("0")) {
+            clearConsole();
+            return;
+        }
+        Vehicle selectedVehicle = vehicles.get(Integer.parseInt(choice) - 1);
+        System.out.println(
+                "Choose auction type:\n1. Buy Now Auction\n2. Blind Auction\n\n0. Back to Menu | Enter option number");
+        choice = scanner.nextLine();
+        switch (choice) {
+            case "1" -> {
+                System.out.println("Enter Starting Price (EUR): ");
+                double startingPrice = Double.parseDouble(scanner.nextLine());
+                System.out.println("Enter Buy Now Price (EUR): ");
+                double buyNowPrice = Double.parseDouble(scanner.nextLine());
+                System.out.println("Enter Auction Duration (hours): ");
+                LocalDateTime endTime = LocalDateTime.now().plusHours(Long.parseLong(scanner.nextLine()));
+                try {
+                    BuyNowAuction auction = new BuyNowAuction(selectedVehicle, (Seller) currentUser, startingPrice,
+                            endTime, buyNowPrice);
+                    auctionService.createAuction(auction);
+                    selectedVehicle.setSellable(false);
+                    clearConsole();
+                    System.out.println("Buy Now Auction launched successfully!");
+                } catch (Exception e) {
+                    clearConsole();
+                    System.out.println("Error launching auction: " + e.getMessage());
+                }
+
+            }
+            case "2" -> {
+                System.out.println("Enter Starting Price (EUR): ");
+                double startingPrice = Double.parseDouble(scanner.nextLine());
+                System.out.println("Enter Auction Duration (hours): ");
+                LocalDateTime endTime = LocalDateTime.now().plusHours(Long.parseLong(scanner.nextLine()));
+                try {
+                    BlindAuction auction = new BlindAuction(selectedVehicle, (Seller) currentUser, startingPrice,
+                            endTime);
+                    auctionService.createAuction(auction);
+                    selectedVehicle.setSellable(false);
+                    clearConsole();
+                    System.out.println("Blind Auction launched successfully!");
+                } catch (Exception e) {
+                    clearConsole();
+                    System.out.println("Error launching auction: " + e.getMessage());
+                }
+            }
+            case "0" -> {
+                clearConsole();
+                return;
+            }
+            default -> {
+                clearConsole();
+                System.out.println("Invalid option. Please try again.");
+            }
+        }
+    }
+
+    private static void printAllAuctions() {
+        System.out.println("--- Active Auctions ---\n\n");
+        List<Auction> activeAuctions = auctionService.getAllAuctions();
+        for (int i = 0; i < activeAuctions.size(); i++) {
+            System.out.printf("%d. %s\n", i + 1, activeAuctions.get(i).toString());
+        }
+
+        System.out.println("\n\n0. Back to Menu | Enter auction number to view details");
+        String choice = scanner.nextLine();
+        if (choice.equals("0")) {
+            clearConsole();
+            return;
+        } else {
+            printAuctionDetails(activeAuctions.get(Integer.parseInt(choice) - 1), false);
+        }
+    }
+
+    private static void printAuctionDetails(Auction auction, boolean isSeller) {
+        clearConsole();
+        System.out.println("\n--- Vehicle Details ---");
+        System.out.println("Manufacturer: " + auction.getVehicle().getManufacturer());
+        System.out.println("Model: " + auction.getVehicle().getModel());
+        System.out.println("Year: " + auction.getVehicle().getYear());
+        System.out.println("Mileage: " + auction.getVehicle().getMileage() + " km");
+        System.out.println("Price: " + auction.getVehicle().getPrice() + " EUR");
+        System.out.println("Engine Details: " + auction.getVehicle().getEngine().toString());
+        System.out.println("\n--- Auction Details ---");
+        System.out.println("Auction Type: " + auction.getAuctionType());
+        System.out.println("Starting Price: " + auction.getStartingPrice() + " EUR");
+        System.out.println("Current Price: " + auction.getCurrentPrice() + " EUR");
+        System.out.println("End Time: " + auction.getEndTime());
+
+        if (!isSeller) {
+            System.out.println("\nPress 1 to place bid |Press Enter to go back...");
+            String choice = scanner.nextLine();
+            if (choice.equals("1")) {
+                System.out.println("Enter your bid amount (EUR): ");
+                double bidAmount = Double.parseDouble(scanner.nextLine());
+                Bid bid = new Bid(currentUser.getId(), bidAmount);
+                if (auction.placeBid(bid)) {
+                    System.out.println("Bid placed successfully!");
+                    return;
+                }
+            } else {
+                clearConsole();
+                return;
+            }
+        } else {
+            System.out.println("\nPlaced Bids:");
+            for (Bid bid : auction.getBidHistory()) {
+                System.out.println("- " + bid.toString());
+            }
+        }
+    }
+
+    private static void viewSellerAuctions(UUID sellerId) {
+        clearConsole();
+        System.out.println("\n--- My Active Auctions ---");
+        List<Auction> auctions = auctionService.getAuctionsBySellerId(sellerId);
+        for (int i = 0; i < auctions.size(); i++) {
+            System.out.printf("%d. %s\n", i + 1, auctions.get(i).toString());
+        }
+        System.out.println("\n\n0. Back to Menu | Enter auction number to view details");
+        String choice = scanner.nextLine();
+        if (choice.equals("0")) {
+            clearConsole();
+            return;
+        } else {
+            printAuctionDetails(auctions.get(Integer.parseInt(choice) - 1), true);
+        }
+    }
+
+    private static void checkBalance() {
+        clearConsole();
+        System.out.println("\n--- Account Balance ---");
+        System.out.println("Current Balance: " + ((Bidder) currentUser).getBalance() + " EUR");
+        System.out.println("\nPress 1 to add funds | Press Enter to go back...");
+        String choice = scanner.nextLine();
+        if (choice.equals("1")) {
+            System.out.println("Enter amount to add (EUR): ");
+            double amount = Double.parseDouble(scanner.nextLine());
+            ((Bidder) currentUser).setBalance(amount);
+            System.out.println("Funds added successfully!");
+        } else {
+            clearConsole();
+        }
+    }
 }

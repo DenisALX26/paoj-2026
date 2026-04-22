@@ -109,4 +109,13 @@ public class UserService {
     public User getUserByEmail(String email) {
         return userCache.get(email);
     }
+
+    public User getUserById(UUID id) {
+        for (User user : userCache.values()) {
+            if (user.getId().equals(id)) {
+                return user;
+            }
+        }
+        return null;
+    }
 }
