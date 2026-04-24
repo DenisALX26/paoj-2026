@@ -24,15 +24,15 @@ Acest proiect reprezinta implementarea unui sistem de licitatii pentru vehicule
 15. **Gestionare Balanta**: Verificarea fondurilor disponibile pentru Bidderi
 16. **Alimentare Cont**: Adaugarea de fonduri in portofelul virtual
 
-### 1.2 - Tipuri de obiecte (Domain Objects)
-`User` -> `Seller`, `Bidder`
-`Vehicle` ->`Car`, `Motorcycle`
-`Car` -> `ElectricCar`, `HybridCar`, `ThermalCar`
-`Motorcycle` -> `Sport`, `Naked`
-`Engine` -> `ElectricEngine`, `ThermalEngine`, `HybridEngine`
-`Auction` -> `BuyNowAuction`, `BlindAuction`
+### 1.2 - Tipuri de obiecte
+`User` -> `Seller`, `Bidder` <br>
+`Vehicle` ->`Car`, `Motorcycle`<br>
+`Car` -> `ElectricCar`, `HybridCar`, `ThermalCar`<br>
+`Motorcycle` -> `Sport`, `Naked`<br>
+`Engine` -> `ElectricEngine`, `ThermalEngine`, `HybridEngine`<br>
+`Auction` -> `BuyNowAuction`, `BlindAuction`<br>
+`DataSeeder` <br>
 `Bid`
-`DataSeeder`
 
 ---
 
