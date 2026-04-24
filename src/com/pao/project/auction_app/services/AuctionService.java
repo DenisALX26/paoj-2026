@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.UUID;
 
 import com.pao.project.auction_app.models.auctions.Auction;
@@ -11,6 +13,7 @@ import com.pao.project.auction_app.models.auctions.Auction;
 public class AuctionService {
     private static AuctionService instance;
     private final Map<UUID, Auction> auctions = new HashMap<>();
+    private final Set<Auction> sortedAuctions = new TreeSet<>();
     
 
     private AuctionService() {
@@ -25,10 +28,11 @@ public class AuctionService {
 
     public void createAuction(Auction auction) {
         auctions.put(auction.getId(), auction);
+        sortedAuctions.add(auction);
     }
 
     public List<Auction> getAllAuctions() {
-        return new ArrayList<>(auctions.values());
+        return new ArrayList<>(sortedAuctions);
     }
 
     public List<Auction> getAuctionsBySellerId(UUID sellerId) {

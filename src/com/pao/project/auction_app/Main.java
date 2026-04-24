@@ -226,7 +226,7 @@ public class Main {
     private static void viewSellerVehicles(UUID sellerId, boolean sellableOnly, Optional<String> vehicleType) {
         clearConsole();
         System.out.println("\n--- My Vehicles for Sale ---");
-        
+
         List<Vehicle> vehicles = vehicleService.getVehiclesByOwnerId(sellerId).stream()
                 .filter(v -> !sellableOnly || v.isSellable())
                 .filter(v -> vehicleType
@@ -629,6 +629,7 @@ public class Main {
     private static void printAllAuctions() {
         System.out.println("--- Active Auctions ---\n\n");
         List<Auction> activeAuctions = auctionService.getAllAuctions();
+
         for (int i = 0; i < activeAuctions.size(); i++) {
             System.out.printf("%d. %s\n", i + 1, activeAuctions.get(i).toString());
         }

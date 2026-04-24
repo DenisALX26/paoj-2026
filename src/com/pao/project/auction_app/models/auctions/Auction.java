@@ -8,7 +8,7 @@ import java.util.UUID;
 import com.pao.project.auction_app.models.users.Seller;
 import com.pao.project.auction_app.models.vehicles.Vehicle;
 
-public abstract class Auction {
+public abstract class Auction implements Comparable<Auction> {
     private final UUID id;
     protected final Vehicle vehicle;
     protected final Seller seller;
@@ -69,6 +69,20 @@ public abstract class Auction {
 
     @Override
     public String toString() {
-        return String.format("Vehicle: %s %s | Current Price: %.2f EUR | Remaining Time: %s", vehicle.getManufacturer(), vehicle.getModel(), currentPrice, endTime.isAfter(LocalDateTime.now()) ? java.time.Duration.between(LocalDateTime.now(), endTime).toHours() + " hours" : "Auction Ended");
+        return String.format("Vehicle: %s %s | Current Price: %.2f EUR | Remaining Time: %s", vehicle.getManufacturer(),
+                vehicle.getModel(), currentPrice,
+                endTime.isAfter(LocalDateTime.now())
+                        ? java.time.Duration.between(LocalDateTime.now(), endTime).toHours() + " hours"
+                        : "Auction Ended");
+    }
+
+    @Override
+    public int compareTo(Auction other) {
+        int priceCompare = Double.compare(this.currentPrice, other.currentPrice);
+        if (priceCompare != 0) {
+            return priceCompare;
+        }
+
+        return this.endTime.compareTo(other.endTime);
     }
 }
