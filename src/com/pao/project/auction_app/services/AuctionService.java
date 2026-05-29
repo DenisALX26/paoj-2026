@@ -9,12 +9,14 @@ import java.util.TreeSet;
 import java.util.UUID;
 
 import com.pao.project.auction_app.models.auctions.Auction;
+import com.pao.project.auction_app.repository.AuctionRepository;
 
 public class AuctionService {
     private static AuctionService instance;
+    private final AuctionRepository auctionRepository = new AuctionRepository();
+    
     private final Map<UUID, Auction> auctions = new HashMap<>();
     private final Set<Auction> sortedAuctions = new TreeSet<>();
-    
 
     private AuctionService() {
     }
@@ -29,6 +31,8 @@ public class AuctionService {
     public void createAuction(Auction auction) {
         auctions.put(auction.getId(), auction);
         sortedAuctions.add(auction);
+        
+        auctionRepository.save(auction);
     }
 
     public List<Auction> getAllAuctions() {
