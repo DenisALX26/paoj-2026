@@ -38,4 +38,8 @@ public class BuyNowAuction extends Auction {
     public String getAuctionType() {
         return "Buy Now";
     }
+
+    public double getBuyNowPrice() {
+        return buyNowPrice;
+    }
 }
