@@ -1,0 +1,11 @@
+version: '3.8'
+services:
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: auction_app
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./resources/schema.sql:/docker-entrypoint-initdb.d/schema.sql
