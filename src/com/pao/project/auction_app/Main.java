@@ -1,5 +1,6 @@
 package com.pao.project.auction_app;
 
+import java.sql.Connection;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -17,6 +18,7 @@ import com.pao.project.auction_app.models.vehicles.motorcycles.*;
 import com.pao.project.auction_app.models.vehicles.motorcycles.enums.*;
 import com.pao.project.auction_app.services.*;
 import com.pao.project.auction_app.utils.DataSeeder;
+import com.pao.project.auction_app.utils.DatabaseConnection;
 
 public class Main {
     private static final Scanner scanner = new Scanner(System.in);
@@ -24,9 +26,23 @@ public class Main {
     private static final VehicleService vehicleService = VehicleService.getInstance();
     private static final EngineService engineService = EngineService.getInstance();
     private static final AuctionService auctionService = AuctionService.getInstance();
+    
+    private static final BidService bidService = BidService.getInstance();
+    private static final ReportService reportService = ReportService.getInstance();
+    private static final AuditService auditService = AuditService.getInstance();
+    
     private static User currentUser = null;
 
     public static void main(String[] args) {
+        try {
+            Connection conn = DatabaseConnection.getInstance().getConnection();
+            if (conn != null && !conn.isClosed()) {
+                System.out.println("Database connection established successfully!");
+            } 
+        } catch (Exception e) {
+            System.out.println("Failed to connect to the database: " + e.getMessage());
+        }
+
         System.out.println("\n-- Hai noroc! Spor la licitatii! --");
 
         while (true) {
@@ -75,7 +91,7 @@ public class Main {
 
         try {
             userService.signUp(type, userName, email, password);
-
+            auditService.logAction("user_signup");
             clearConsole();
             System.out.println("Sign up successful! You can now log in.");
         } catch (Exception e) {
@@ -92,7 +108,7 @@ public class Main {
 
         try {
             currentUser = userService.login(email, password);
-
+            auditService.logAction("user_login");
             clearConsole();
             System.out.println("Login successful!");
         } catch (Exception e) {
@@ -111,10 +127,12 @@ public class Main {
             System.out.println("4. View My Cars");
             System.out.println("5. View My Motorcycles");
             System.out.println("6. View My Active Auctions");
+            System.out.println("7. View Platform Reports");
         } else {
             System.out.println("1. View Active Auctions");
             System.out.println("2. Place a Bid");
             System.out.println("3. Check Balance");
+            System.out.println("4. View Platform Reports");
         }
 
         System.out.println("0. Logout");
@@ -133,7 +151,7 @@ public class Main {
                 if (userType.equalsIgnoreCase("Seller")) {
                     launchAuction();
                 } else {
-                    System.out.println("Place a Bid - Feature coming soon!");
+                    System.out.println("Please select an active auction from Option 1 to place a bid.");
                 }
             }
             case "3" -> {
@@ -146,6 +164,8 @@ public class Main {
             case "4" -> {
                 if (userType.equalsIgnoreCase("Seller")) {
                     viewSellerVehicles(currentUser.getId(), false, Optional.of("car"));
+                } else {
+                    viewPlatformReports();
                 }
             }
             case "5" -> {
@@ -156,6 +176,11 @@ public class Main {
             case "6" -> {
                 if (userType.equalsIgnoreCase("Seller")) {
                     viewSellerAuctions(currentUser.getId());
+                }
+            }
+            case "7" -> {
+                if (userType.equalsIgnoreCase("Seller")) {
+                    viewPlatformReports();
                 }
             }
             case "0" -> {
@@ -171,6 +196,65 @@ public class Main {
     private static void clearConsole() {
         System.out.println("\033[H\033[2J\033[3J");
         System.out.flush();
+    }
+
+    private static void viewPlatformReports() {
+        clearConsole();
+        System.out.println("--- Platform Reports ---");
+        System.out.println("1. Active Auctions Summary");
+        System.out.println("2. Detailed Bid History for an Auction");
+        System.out.println("3. Top Highest Bids");
+        System.out.println("0. Back to Menu");
+        System.out.print("Choose an option: ");
+        String choice = scanner.nextLine();
+        
+        System.out.println("\n");
+        switch (choice) {
+            case "1" -> {
+                List<ReportService.AuctionSummary> summaries = reportService.getActiveAuctionsSummary();
+                if(summaries.isEmpty()) System.out.println("No active auctions.");
+                for(ReportService.AuctionSummary s : summaries) {
+                    System.out.printf("Vehicle: %s | Seller: %s | Current Price: %.2f EUR | Type: %s\n", 
+                        s.vehicleInfo(), s.sellerName(), s.currentPrice(), s.auctionType());
+                }
+            }
+            case "2" -> {
+                System.out.print("Enter Auction ID (UUID): ");
+                try {
+                    UUID auctionId = UUID.fromString(scanner.nextLine());
+                    List<ReportService.BidDetail> details = reportService.getDetailedBidHistory(auctionId);
+                    if (details.isEmpty()) System.out.println("No bids found for this auction.");
+                    for(ReportService.BidDetail d : details) {
+                        System.out.printf("Bidder: %s (%s) | Amount: %.2f EUR | Date: %s\n", 
+                            d.bidderName(), d.email(), d.amount(), d.timestamp());
+                    }
+                } catch (IllegalArgumentException e) {
+                    System.out.println("Invalid UUID format.");
+                }
+            }
+            case "3" -> {
+                System.out.print("Enter number of top bids to view (e.g., 5): ");
+                try {
+                    int limit = Integer.parseInt(scanner.nextLine());
+                    List<ReportService.TopBid> topBids = reportService.getTopHighestBids(limit);
+                    if(topBids.isEmpty()) System.out.println("No bids in the system.");
+                    for(int i=0; i < topBids.size(); i++) {
+                        System.out.printf("%d. Bidder: %s | Vehicle: %s | Amount: %.2f EUR\n", 
+                            (i+1), topBids.get(i).bidderName(), topBids.get(i).vehicleInfo(), topBids.get(i).amount());
+                    }
+                } catch (NumberFormatException e) {
+                    System.out.println("Invalid number format.");
+                }
+            }
+            case "0" -> {
+                clearConsole();
+                return;
+            }
+            default -> System.out.println("Invalid choice.");
+        }
+        System.out.println("\nPress Enter to continue...");
+        scanner.nextLine();
+        clearConsole();
     }
 
     private static void showVehicleDetails(Vehicle vehicle, String choice) {
@@ -276,30 +360,12 @@ public class Main {
                     "What type of vehicle do you want to sell?:\n1. Thermal Car\n2. Electric Car\n3. Hybrid Car\n4. Naked Motorcycle\n5. Sport Motorcycle\n\n0. Back to Menu | Enter option number");
             String choice = scanner.nextLine();
             switch (choice) {
-                case "1" -> {
-                    addThermalCar();
-                    break;
-                }
-                case "2" -> {
-                    addElectricCar();
-                    break;
-                }
-                case "3" -> {
-                    addHybridCar();
-                    break;
-                }
-                case "4" -> {
-                    addNakedMotorcycle();
-                    break;
-                }
-                case "5" -> {
-                    addSportMotorcycle();
-                    break;
-                }
-                case "0" -> {
-                    clearConsole();
-                    break;
-                }
+                case "1" -> { addThermalCar(); break; }
+                case "2" -> { addElectricCar(); break; }
+                case "3" -> { addHybridCar(); break; }
+                case "4" -> { addNakedMotorcycle(); break; }
+                case "5" -> { addSportMotorcycle(); break; }
+                case "0" -> { clearConsole(); break; }
                 default -> {
                     clearConsole();
                     System.out.println("Invalid option. Please try again.");
@@ -350,6 +416,7 @@ public class Main {
         try {
             engineService.addEngine(engine);
             vehicleService.addVehicle(newMotorcycle, currentUser.getId());
+            auditService.logAction("add_vehicle");
             clearConsole();
             System.out.println("Sport Motorcycle added successfully!");
         } catch (Exception e) {
@@ -401,6 +468,7 @@ public class Main {
         try {
             engineService.addEngine(engine);
             vehicleService.addVehicle(newMotorcycle, currentUser.getId());
+            auditService.logAction("add_vehicle");
             clearConsole();
             System.out.println("Naked Motorcycle added successfully!");
         } catch (Exception e) {
@@ -460,6 +528,7 @@ public class Main {
         try {
             engineService.addEngine(engine);
             vehicleService.addVehicle(newCar, currentUser.getId());
+            auditService.logAction("add_vehicle");
             clearConsole();
             System.out.println("Hybrid Car added successfully!");
         } catch (Exception e) {
@@ -508,6 +577,7 @@ public class Main {
         try {
             engineService.addEngine(engine);
             vehicleService.addVehicle(newCar, currentUser.getId());
+            auditService.logAction("add_vehicle");
             clearConsole();
             System.out.println("Electric Car added successfully!");
         } catch (Exception e) {
@@ -551,6 +621,7 @@ public class Main {
         try {
             engineService.addEngine(engine);
             vehicleService.addVehicle(newCar, currentUser.getId());
+            auditService.logAction("add_vehicle");
             clearConsole();
             System.out.println("Thermal Car added successfully!");
         } catch (Exception e) {
@@ -590,6 +661,7 @@ public class Main {
                             endTime, buyNowPrice);
                     auctionService.createAuction(auction);
                     selectedVehicle.setSellable(false);
+                    auditService.logAction("launch_auction");
                     clearConsole();
                     System.out.println("Buy Now Auction launched successfully!");
                 } catch (Exception e) {
@@ -608,6 +680,7 @@ public class Main {
                             endTime);
                     auctionService.createAuction(auction);
                     selectedVehicle.setSellable(false);
+                    auditService.logAction("launch_auction");
                     clearConsole();
                     System.out.println("Blind Auction launched successfully!");
                 } catch (Exception e) {
@@ -628,6 +701,7 @@ public class Main {
 
     private static void printAllAuctions() {
         System.out.println("--- Active Auctions ---\n\n");
+        auditService.logAction("view_all_auctions");
         List<Auction> activeAuctions = auctionService.getAllAuctions();
 
         for (int i = 0; i < activeAuctions.size(); i++) {
@@ -654,21 +728,27 @@ public class Main {
         System.out.println("Price: " + auction.getVehicle().getPrice() + " EUR");
         System.out.println("Engine Details: " + auction.getVehicle().getEngine().toString());
         System.out.println("\n--- Auction Details ---");
+        System.out.println("Auction ID: " + auction.getId());
         System.out.println("Auction Type: " + auction.getAuctionType());
         System.out.println("Starting Price: " + auction.getStartingPrice() + " EUR");
         System.out.println("Current Price: " + auction.getCurrentPrice() + " EUR");
         System.out.println("End Time: " + auction.getEndTime());
 
         if (!isSeller) {
-            System.out.println("\nPress 1 to place bid |Press Enter to go back...");
+            System.out.println("\nPress 1 to place bid | Press Enter to go back...");
             String choice = scanner.nextLine();
             if (choice.equals("1")) {
                 System.out.println("Enter your bid amount (EUR): ");
-                double bidAmount = Double.parseDouble(scanner.nextLine());
-                Bid bid = new Bid(currentUser.getId(), bidAmount);
-                if (auction.placeBid(bid)) {
-                    System.out.println("Bid placed successfully!");
-                    return;
+                try {
+                    double bidAmount = Double.parseDouble(scanner.nextLine());
+                    Bid bid = new Bid(currentUser.getId(), bidAmount);
+                    
+                    if (auction.placeBid(bid)) {
+                        bidService.placeBidTransaction(auction, bid);
+                        System.out.println("Bid placed successfully!");
+                    }
+                } catch (Exception e) {
+                    System.out.println("Error placing bid: " + e.getMessage());
                 }
             } else {
                 clearConsole();
@@ -709,6 +789,9 @@ public class Main {
             System.out.println("Enter amount to add (EUR): ");
             double amount = Double.parseDouble(scanner.nextLine());
             ((Bidder) currentUser).setBalance(amount);
+            
+            auditService.logAction("add_funds");
+            
             System.out.println("Funds added successfully!");
         } else {
             clearConsole();
